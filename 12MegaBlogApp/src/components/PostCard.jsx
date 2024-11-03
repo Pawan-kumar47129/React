@@ -1,14 +1,16 @@
 import React from 'react'
 import {Link} from "react-router-dom"
 import appwriteService from "../appwrite/database.js"
-const PostCard = ({$id,title,featureImage}) => {
+const PostCard = ({post}) => {
+  console.log(post.featuredImage)
   return (
-   <Link to={`/post/${$id}`}>
+   <Link to={`/post/${post.$id}`}>
     <div className='w-full bg-gray-100 rounded-xl p-4'>
         <div className='w-full justify-center mb-4'>
-        <img src={appwriteService.getFilePreview(featureImage)} alt={title} className='rounded-xl'/> 
+          <p>image:{console.log(appwriteService.getFilePreview(post.featuredImage))}</p>
+          <img src={appwriteService.getFilePreview(post.featuredImage)} alt="img" />
         </div>
-        <h2 className="text-xl font-bold">{title}</h2>
+        <h2 className="text-xl font-bold">{post.title}</h2>
     </div>
    </Link>
   )

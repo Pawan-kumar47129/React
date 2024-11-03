@@ -19,8 +19,9 @@ export class Service {
       return await this.databases.createDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionId,
-        slug,
+        ID.unique(),
         {
+          slug,
           title,
           content,
           featuredImage,
@@ -32,13 +33,14 @@ export class Service {
       console.log("appwrite service :: creat post :: error ", error);
     }
   }
-  async updatePost(slug, { title, content, featuredImage, status }) {
+  async updatePost($id, { title,slug, content, featuredImage, status }) {
     try {
       return await this.databases.updateDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionId,
-        slug,
+        $id,
         {
+          slug,
           title,
           content,
           featuredImage,
@@ -49,12 +51,12 @@ export class Service {
       console.log("Appwrite service :: upadate post :: error", error);
     }
   }
-  async deletePost(slug) {
+  async deletePost($id) {
     try {
       await this.databases.deleteDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionId,
-        slug
+        $id
       );
       return true;
     } catch (error) {
@@ -63,12 +65,12 @@ export class Service {
     }
   }
 
-  async getPost(slug) {
+  async getPost($id) {
     try {
       return await this.databases.getDocument(
         config.appwriteDatabaseId,
         config.appwriteCollectionId,
-        slug
+        $id
       );
     } catch (error) {
       console.log("Appwrite service :: get Post :: error", error);
@@ -108,7 +110,7 @@ export class Service {
   }
 
   getFilePreview(fileId){
-    this.storage.getFilePreview(config.appwriteBucketId,fileId);
+    return this.storage.getFilePreview(config.appwriteBucketId,fileId);
   }
 
 

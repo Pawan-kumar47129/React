@@ -1,10 +1,11 @@
-import React, { useCallback } from "react";
+import React, { useCallback ,useState} from "react";
 import { useForm } from "react-hook-form";
 import { Button, Input, Select, RTE } from "../index";
 import appwriteService from "../../appwrite/database";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 const PostForm = ({ post }) => {
+  const [Loading,setLoading]=useState(false)
   const { register, handleSubmit, watch, setValue, control, getValues } =
     useForm({
       defaultValues: {
@@ -17,6 +18,7 @@ const PostForm = ({ post }) => {
   const navigate = useNavigate();
   const userData = useSelector((state) => state.auth.userData);
   const submit = async (data) => {
+    setLoading(true);
     if (post) {
       const file = data.image[0]
         ? await appwriteService.uploadFile(data.image[0])
@@ -32,16 +34,19 @@ const PostForm = ({ post }) => {
         navigate(`/post/${dbPost.$id}`);
       }
     } else {
+      setLoading(true);
       const file = data.image[0]
         ? await appwriteService.uploadFile(data.image[0])
         : null;
       if (file) {
+        console.log(file);
         const fileId = file.$id;
         data.featuredImage = fileId;
         const dbPost = await appwriteService.createPost({
           ...data,
           userId: userData.$id,
         });
+        setLoading(false)
         if (dbPost) {
           navigate(`/post/${dbPost.$id}`);
         }
@@ -50,74 +55,80 @@ const PostForm = ({ post }) => {
   };
   const slugTransfrom = useCallback((value) => {
     if (value && typeof value === "string") {
-      return value
-        .trim()
-        .toLocaleLowerCase()
-        .replace(/^[a-zA-Z\d\s/]+/g, "-")
-        .replace(/\s/g, "-");
+      return value.trim().toLocaleLowerCase().replaceAll(" ", "-");
     }
-    return ""
-
+    return "";
   }, []);
-  React.useEffect(()=>{
-    const subscription =watch((value,{name})=>{
-        if(name==='title'){
-            setValue('slug',slugTransfrom(value.title,{shouldValidate:true}))
-        }
-    })
-    return ()=>{
-        subscription.unsubscribe()
+
+  const subscription = watch((value, { name }) => {
+    console.log("hello");
+    if (name === "title") {
+      setValue("slug", slugTransfrom(value.title, { shouldValidate: true }));
     }
-  },[watch,slugTransfrom,setValue])
+  });
+  if(Loading){
+    return <><h1>Loading ....</h1></>
+  }
   return (
     <form onSubmit={handleSubmit(submit)} className="flex flex-wrap">
-            <div className="w-2/3 px-2">
-                <Input
-                    label="Title :"
-                    placeholder="Title"
-                    className="mb-4"
-                    {...register("title", { required: true })}
-                />
-                <Input
-                    label="Slug :"
-                    placeholder="Slug"
-                    className="mb-4"
-                    {...register("slug", { required: true })}
-                    onInput={(e) => {
-                        setValue("slug", slugTransfrom(e.currentTarget.value), { shouldValidate: true });
-                    }}
-                />
-                <RTE label="Content :" name="content" control={control} defaultValue={getValues("content")} />
-            </div>
-            <div className="w-1/3 px-2">
-                <Input
-                    label="Featured Image :"
-                    type="file"
-                    className="mb-4"
-                    accept="image/png, image/jpg, image/jpeg, image/gif"
-                    {...register("image", { required: !post })}
-                />
-                {post && (
-                    <div className="w-full mb-4">
-                        <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
-                            alt={post.title}
-                            className="rounded-lg"
-                        />
-                    </div>
-                )}
-                <Select
-                    options={["active", "inactive"]}
-                    label="Status"
-                    className="mb-4"
-                    {...register("status", { required: true })}
-                />
-                <Button type="submit" bgColor={post ? "bg-green-500" : undefined} className="w-full">
-                    {post ? "Update" : "Submit"}
-                </Button>
-            </div>
-        </form>
-  )
+      <div className="w-2/3 px-2">
+        <Input
+          label="Title :"
+          placeholder="Title"
+          className="mb-4"
+          {...register("title", { required: true })}
+        />
+        <Input
+          label="Slug :"
+          placeholder="Slug"
+          className="mb-4"
+          {...register("slug", { required: true })}
+          onInput={(e) => {
+            setValue("slug", slugTransfrom(e.currentTarget.value), {
+              shouldValidate: true,
+            });
+          }}
+        />
+        <RTE
+          label="Content :"
+          name="content"
+          control={control}
+          defaultValue={getValues("content")}
+        />
+      </div>
+      <div className="w-1/3 px-2">
+        <Input
+          label="Featured Image :"
+          type="file"
+          className="mb-4"
+          accept="image/png, image/jpg, image/jpeg, image/gif"
+          {...register("image", { required: !post })}
+        />
+        {post && (
+          <div className="w-full mb-4">
+            <img
+              src={appwriteService.getFilePreview(post.featuredImage)}
+              alt={post.title}
+              className="rounded-lg"
+            />
+          </div>
+        )}
+        <Select
+          options={["active", "inactive"]}
+          label="Status"
+          className="mb-4"
+          {...register("status", { required: true })}
+        />
+        <Button
+          type="submit"
+          bgColor={post ? "bg-green-500" : undefined}
+          className="w-full"
+        >
+          {post ? "Update" : "Submit"}
+        </Button>
+      </div>
+    </form>
+  );
 };
 
 export default PostForm;
