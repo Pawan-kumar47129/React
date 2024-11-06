@@ -37,7 +37,7 @@ const Signup = () => {
           </span>
         </div>
         <h2 className="text-center text-2xl font-bold leading-tight">
-          Sign in to your account
+          Sign up to your account
         </h2>
         <p className="mt-2 tetx-center text-base text-black/60">
           Already have an account?&nbsp;
